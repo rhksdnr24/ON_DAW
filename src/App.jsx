@@ -1,137 +1,58 @@
-import { useState, useEffect } from "react";
-import {
-  Authenticator,
-  Button,
-  Text,
-  TextField,
-  Heading,
-  Flex,
-  View,
-  Grid,
-  Divider,
-} from "@aws-amplify/ui-react";
-import { Amplify } from "aws-amplify";
-import "@aws-amplify/ui-react/styles.css";
-import { generateClient } from "aws-amplify/data";
-import outputs from "../amplify_outputs.json";
-/**
- * @type {import('aws-amplify/data').Client<import('../amplify/data/resource').Schema>}
- */
-
-Amplify.configure(outputs);
-const client = generateClient({
-  authMode: "userPool",
-});
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Login from "./pages/Login";
 
 export default function App() {
-  const [expenses, setExpenses] = useState([]);
+  const headerStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#222',
+    padding: '15px 30px', // 패딩을 늘려서 높이를 키움
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.3)',
+  };
 
-  useEffect(() => {
-    client.models.Expense.observeQuery().subscribe({
-      next: (data) => setExpenses([...data.items]),
-    });
-  }, []);
+  const navStyle = {
+    display: 'flex',
+    gap: '40px', // 간격 늘림
+  };
 
-  async function createExpense(event) {
-    event.preventDefault();
-    const form = new FormData(event.target);
-
-    await client.models.Expense.create({
-      name: form.get("name"),
-      amount: form.get("amount"),
-    });
-
-    event.target.reset();
-  }
-
-  async function deleteExpense({ id }) {
-    const toBeDeletedExpense = {
-      id,
-    };
-
-    await client.models.Expense.delete(toBeDeletedExpense);
-  }
+  const linkStyle = {
+    textDecoration: 'none',
+    color: '#ddd',
+    fontSize: '20px', // 폰트 크기 증가
+    fontWeight: '600',
+    transition: 'color 0.3s',
+  };
 
   return (
-    <Authenticator>
-      {({ signOut }) => (
-        <Flex
-          className="App"
-          justifyContent="center"
-          alignItems="center"
-          direction="column"
-          width="70%"
-          margin="0 auto"
-        >
-          <Heading level={1}>Expense Tracker</Heading>
-          <View as="form" margin="3rem 0" onSubmit={createExpense}>
-            <Flex
-              direction="column"
-              justifyContent="center"
-              gap="2rem"
-              padding="2rem"
-            >
-              <TextField
-                name="name"
-                placeholder="Expense Name"
-                label="Expense Name"
-                labelHidden
-                variation="quiet"
-                required
-              />
-              <TextField
-                name="amount"
-                placeholder="Expense Amount"
-                label="Expense Amount"
-                type="float"
-                labelHidden
-                variation="quiet"
-                required
-              />
+    <Router>
+      <div style={{ backgroundColor: '#121212', minHeight: '100vh' }}>
+        {/* Header with Logo */}
+        <header style={headerStyle}>
+          <Link to="/">
+            <img
+              src="/logo.png"
+              alt="ON_DAW Logo"
+              style={{ height: '60px', cursor: 'pointer' }} // 로고 크기 증가
+            />
+          </Link>
+          <nav style={navStyle}>
+            <Link style={linkStyle} to="/">Home</Link>
+            <Link style={linkStyle} to="/about">About</Link>
+            <Link style={linkStyle} to="/login">Login</Link>
+          </nav>
+        </header>
 
-              <Button type="submit" variation="primary">
-                Create Expense
-              </Button>
-            </Flex>
-          </View>
-          <Divider />
-          <Heading level={2}>Expenses</Heading>
-          <Grid
-            margin="3rem 0"
-            autoFlow="column"
-            justifyContent="center"
-            gap="2rem"
-            alignContent="center"
-          >
-            {expenses.map((expense) => (
-              <Flex
-                key={expense.id || expense.name}
-                direction="column"
-                justifyContent="center"
-                alignItems="center"
-                gap="2rem"
-                border="1px solid #ccc"
-                padding="2rem"
-                borderRadius="5%"
-                className="box"
-              >
-                <View>
-                  <Heading level="3">{expense.name}</Heading>
-                </View>
-                <Text fontStyle="italic">${expense.amount}</Text>
-
-                <Button
-                  variation="destructive"
-                  onClick={() => deleteExpense(expense)}
-                >
-                  Delete note
-                </Button>
-              </Flex>
-            ))}
-          </Grid>
-          <Button onClick={signOut}>Sign Out</Button>
-        </Flex>
-      )}
-    </Authenticator>
+        {/* Page Routes */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
